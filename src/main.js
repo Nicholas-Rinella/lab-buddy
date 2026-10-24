@@ -74,8 +74,15 @@ tabButtons.forEach(button => {
 });
 
 // Initialize Home Dashboard
+let homeEngine = null;
 try {
-  initHomeEngine(auditLogger, navigateToTab);
+  homeEngine = initHomeEngine(auditLogger, (tabKey, subPaneKey) => {
+    navigateToTab(tabKey, subPaneKey);
+    // Auto-record to recents if sub-pane exists
+    if (subPaneKey && homeEngine) {
+      homeEngine.recordRecentTool(subPaneKey);
+    }
+  });
 } catch (err) {
   console.error("Home Engine Init Error:", err);
 }

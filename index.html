@@ -71,6 +71,21 @@
         </div>
       </section>
 
+      <!-- FAVORITES & RECENTS QUICK-ACCESS SECTION -->
+      <section class="home-quick-access" id="home-quick-access-section">
+        <div class="quick-access-header">
+          <div class="quick-access-tabs">
+            <button class="qa-tab-btn active" id="qa-tab-fav">⭐ Pinned Favorites (<span id="qa-fav-count">4</span>)</button>
+            <button class="qa-tab-btn" id="qa-tab-recent">🕒 Recent Activity</button>
+          </div>
+          <span style="font-size:0.75rem; color:var(--text-muted);">Quick-launch tools without searching</span>
+        </div>
+
+        <div class="quick-access-grid" id="quick-access-grid">
+          <!-- Dynamically populated by HomeEngine.js -->
+        </div>
+      </section>
+
       <!-- MODULE HIERARCHY & LAUNCHPAD -->
       <section>
         <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:0.75rem;">
@@ -987,6 +1002,7 @@
               </div>
             </div>
 
+            <!-- Calculated Metrics Ribbon -->
             <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:0.6rem; margin-bottom:1rem;">
               <div class="scaleup-stat-card">
                 <span class="scaleup-stat-label">Area & Expansion</span>
