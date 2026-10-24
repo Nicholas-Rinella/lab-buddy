@@ -4,11 +4,12 @@ import { initAuditLogger } from './modules/audit/AuditLogger.js';
 import { initBatchSeedingGrid } from './modules/culture/BatchSeedingGrid.js';
 import { initBatchReagentGrid } from './modules/reagents/BatchReagentGrid.js';
 import { initConversionEngine } from './modules/conversions/ConversionEngine.js';
+import { initHomeEngine } from './modules/home/HomeEngine.js';
 
 // Traceable Session ID for audit loggers
 window.__LAB_BUDDY_SESSION_ID__ = "SESSION_" + Math.random().toString(36).substring(2, 9).toUpperCase();
 
-// Initialize Subsystems Defensively
+// Initialize Subsystems
 const auditLogger = initAuditLogger();
 
 try { initSeedingEngine(); } catch (err) { console.error("Seeding Engine Init Error:", err); }
@@ -19,6 +20,7 @@ try { initConversionEngine(auditLogger); } catch (err) { console.error("Conversi
 
 // Module View Elements
 const moduleViews = {
+  home: document.getElementById('home-module'),
   culture: document.getElementById('culture-module'),
   reagents: document.getElementById('reagents-module'),
   conversions: document.getElementById('conversions-module')
@@ -26,28 +28,57 @@ const moduleViews = {
 
 const tabButtons = document.querySelectorAll('.tab-btn');
 
-// Tab Navigation Router
-tabButtons.forEach(button => {
-  button.addEventListener('click', () => {
-    const tabKey = button.dataset.tab;
-    if (!tabKey || !moduleViews[tabKey]) return;
+// Master Deep-Linking Navigator
+function navigateToTab(tabKey, subPaneKey = null) {
+  if (!tabKey || !moduleViews[tabKey]) return;
 
-    // Update Tab Styles
-    tabButtons.forEach(btn => btn.classList.remove('active'));
-    button.classList.add('active');
+  // 1. Update Navigation Tabs Active Style
+  tabButtons.forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tabKey);
+  });
 
-    // Switch Display
-    Object.keys(moduleViews).forEach(key => {
-      if (moduleViews[key]) {
-        moduleViews[key].style.display = key === tabKey ? 'block' : 'none';
-      }
-    });
-
-    if (auditLogger) {
-      auditLogger.logEvent("Navigation", "TabSwitched", { activeTab: tabKey });
+  // 2. Switch Module View Visibility
+  Object.keys(moduleViews).forEach(key => {
+    if (moduleViews[key]) {
+      moduleViews[key].style.display = key === tabKey ? 'block' : 'none';
     }
   });
+
+  // 3. Sub-Pane Deep Linking Dispatcher
+  if (subPaneKey) {
+    if (tabKey === 'culture') {
+      const btn = document.getElementById(`subBtn-${subPaneKey}`);
+      if (btn) btn.click();
+    } else if (tabKey === 'reagents') {
+      const btn = document.getElementById(`rg-subtab-${subPaneKey}`);
+      if (btn) btn.click();
+    } else if (tabKey === 'conversions') {
+      const btn = document.getElementById(`m3-tab-${subPaneKey}`);
+      if (btn) btn.click();
+    }
+  }
+
+  // Scroll to top of workspace
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  if (auditLogger) {
+    auditLogger.logEvent("Navigation", "TabNavigated", { activeTab: tabKey, subPane: subPaneKey });
+  }
+}
+
+// Wire Header Navigation Bar
+tabButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    navigateToTab(button.dataset.tab);
+  });
 });
+
+// Initialize Home Dashboard
+try {
+  initHomeEngine(auditLogger, navigateToTab);
+} catch (err) {
+  console.error("Home Engine Init Error:", err);
+}
 
 // Expert Mode Toggle Sync across Modules
 const expertToggle = document.getElementById('expertToggle');
