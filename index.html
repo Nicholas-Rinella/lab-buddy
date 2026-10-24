@@ -8,6 +8,7 @@
 </head>
 <body>
   <div class="app-container">
+    <!-- HEADER -->
     <header id="app-header">
       <div>
         <h1>Lab-Buddy Bioprocess Suite</h1>
@@ -15,31 +16,78 @@
           Bench dilution balancer, vessel simulation & reagent QC suite
         </p>
       </div>
-      <div style="display:flex; align-items:center; gap:0.75rem;">
+      <div style="display:flex; align-items:center; gap:1.25rem;">
+        <div class="audit-group">
+          <div class="audit-indicator" title="Background audit logger actively recording">
+            <span class="audit-dot"></span>
+            <span id="audit-log-count" style="font-weight:600; color:#e2e8f0;">Audit: 0 Events</span>
+          </div>
+          <button class="btn-audit-export" id="btn-export-audit">
+            📥 Export Audit Manifest (.json)
+          </button>
+        </div>
+
         <label style="font-size:0.8rem; color:var(--text-muted); display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
           <input type="checkbox" id="expertToggle" /> Expert Mode
         </label>
-        <span class="badge">v1.0 Modular</span>
+        <span class="badge">v1.3 Verified</span>
       </div>
     </header>
 
-    <!-- Navigation Bar -->
+    <!-- NAVIGATION TABS -->
     <nav class="nav-tabs" id="nav-tabs">
       <button class="tab-btn active" data-tab="culture">Cell Culture & Seeding</button>
       <button class="tab-btn" data-tab="reagents">Reagents & Solutions</button>
-      <button class="tab-btn" data-tab="mechanics">Centrifuge & Mechanics</button>
+      <button class="tab-btn" data-tab="conversions">Converters & Mechanics</button>
     </nav>
 
-    <!-- CULTURE MODULE VIEW -->
-    <main id="culture-module" class="module-view active">
-      <!-- Sub-tabs within Culture -->
-      <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem;">
+    <!-- ======================================================== -->
+    <!-- MODULE 1: CELL CULTURE & SEEDING                         -->
+    <!-- ======================================================== -->
+    <main id="culture-module" class="module-view" style="display: block;">
+      <div id="culture-subtabs" style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem;">
         <button class="preset-btn" id="subBtn-seeding" style="background:#0284c7; color:#fff;">Vessel Seeding & Dilution</button>
         <button class="preset-btn" id="subBtn-hemo">Hemocytometer Solver</button>
         <button class="preset-btn" id="subBtn-growth">Harvest & Confluency Planner</button>
       </div>
 
-      <!-- Pane 1: Seeding & Dilution -->
+      <!-- EXPERT MODE: BATCH SEEDING GRID -->
+      <section id="culture-batch-grid-section" class="expert-batch-section" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+          <div>
+            <h3 style="font-size: 1.05rem; color: #fff;">📊 Batch Cell Seeding Grid (Spreadsheet Mode)</h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">
+              Configure multiple flasks simultaneously with real Excel formula export.
+            </p>
+          </div>
+          <div style="display: flex; gap: 0.4rem;">
+            <button class="preset-btn" id="btn-add-grid-row" style="background:#0284c7; color:#fff;">+ Add Row</button>
+            <button class="btn-export" id="btn-export-grid-excel">📊 Export Spreadsheet (.csv with formulas)</button>
+          </div>
+        </div>
+
+        <div class="batch-table-container">
+          <table class="batch-grid" id="batch-grid-table">
+            <thead>
+              <tr>
+                <th>Vessel ID</th>
+                <th>Format</th>
+                <th>Target Live Cells</th>
+                <th>Working Vol (mL)</th>
+                <th>Stock Base</th>
+                <th>Exp</th>
+                <th>Viability %</th>
+                <th>Suspension Vol (mL)</th>
+                <th>Fresh Media (mL)</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="batch-grid-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- STANDARD MODE: GUIDED SEEDING -->
       <div id="culture-seeding-pane" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
         <div class="card">
           <h3 style="font-size: 1.1rem; margin-bottom: 1rem; color: #e2e8f0;">Seeding Parameters</h3>
@@ -88,7 +136,6 @@
           </div>
         </div>
 
-        <!-- Physical Bench Simulation -->
         <div class="card">
           <h3 style="font-size: 1.1rem; margin-bottom: 1rem; color: #e2e8f0;">Physical Bench Simulation</h3>
           
@@ -97,7 +144,6 @@
               Aspirating: 10.5%
             </div>
 
-            <!-- Falcon Tube SVG -->
             <div style="display:flex; flex-direction:column; align-items:center; gap:0.5rem;">
               <svg width="80" height="200" viewBox="0 0 80 200">
                 <defs>
@@ -120,7 +166,6 @@
               <span id="stockTubeCaption" style="font-size:0.8rem; color:var(--text-muted);">Stock (50.0 mL)</span>
             </div>
 
-            <!-- Target Flask SVG -->
             <div style="display:flex; flex-direction:column; align-items:center; gap:0.5rem;">
               <svg width="110" height="200" viewBox="0 0 110 200">
                 <defs>
@@ -158,29 +203,26 @@
         </div>
       </div>
 
-      <!-- Pane 2: Hemocytometer -->
+      <!-- HEMOCYTOMETER PANE -->
       <div id="culture-hemo-pane" class="card" style="display: none; margin-top: 1rem;">
         <h3 style="font-size:1.1rem; margin-bottom:0.5rem; color:#e2e8f0;">Hemocytometer 4-Corner Grid Calculator</h3>
-        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.25rem;">Input counts across standard 1 mm² corner squares. Automatically syncs with the seeding calculator.</p>
-        
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.25rem;">Input counts across standard 1 mm² corner squares.</p>
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:0.75rem; margin-bottom:1.25rem;">
-          <div><label style="font-size:0.8rem; color:var(--text-muted);">Square 1 (TL)</label><input type="number" id="sq1" value="45" min="0" /></div>
-          <div><label style="font-size:0.8rem; color:var(--text-muted);">Square 2 (TR)</label><input type="number" id="sq2" value="52" min="0" /></div>
-          <div><label style="font-size:0.8rem; color:var(--text-muted);">Square 3 (BL)</label><input type="number" id="sq3" value="48" min="0" /></div>
-          <div><label style="font-size:0.8rem; color:var(--text-muted);">Square 4 (BR)</label><input type="number" id="sq4" value="50" min="0" /></div>
+          <div><label style="font-size:0.8rem; color:var(--text-muted);">Square 1</label><input type="number" id="sq1" value="45" min="0" /></div>
+          <div><label style="font-size:0.8rem; color:var(--text-muted);">Square 2</label><input type="number" id="sq2" value="52" min="0" /></div>
+          <div><label style="font-size:0.8rem; color:var(--text-muted);">Square 3</label><input type="number" id="sq3" value="48" min="0" /></div>
+          <div><label style="font-size:0.8rem; color:var(--text-muted);">Square 4</label><input type="number" id="sq4" value="50" min="0" /></div>
         </div>
-
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.75rem; margin-bottom:1.25rem;">
           <div>
-            <label style="font-size:0.8rem; color:var(--text-muted);">Dilution Factor (e.g. 2 for 1:1 Trypan)</label>
+            <label style="font-size:0.8rem; color:var(--text-muted);">Dilution Factor</label>
             <input type="number" id="hemoDilution" value="2.0" step="0.5" min="1.0" />
           </div>
           <div>
-            <label style="font-size:0.8rem; color:var(--text-muted);">Total Dead Cells (4 squares)</label>
+            <label style="font-size:0.8rem; color:var(--text-muted);">Total Dead Cells</label>
             <input type="number" id="deadCells" value="10" min="0" />
           </div>
         </div>
-
         <div style="background:#090d16; border:1px solid var(--border); border-radius:8px; padding:1rem;">
           <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
             <span style="font-size:0.85rem; color:var(--text-muted);">Live Concentration:</span>
@@ -191,50 +233,810 @@
             <span id="hemoViabilityDisplay" style="font-size:1.15rem; font-weight:700; color:var(--accent);">95.1%</span>
           </div>
           <button id="syncHemoBtn" class="preset-btn" style="background:#0284c7; color:#fff; width:100%; padding:0.6rem; font-weight:600;">
-            Sync Concentration & Viability to Seeding Engine →
+            Sync Live Concentration to Seeding Engine →
           </button>
         </div>
       </div>
 
-      <!-- Pane 3: Growth Planner -->
+      <!-- GROWTH PANE -->
       <div id="culture-growth-pane" class="card" style="display: none; margin-top: 1rem;">
         <h3 style="font-size:1.1rem; margin-bottom:0.5rem; color:#e2e8f0;">Exponential Growth & Harvest Planner</h3>
-        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.25rem;">Estimate incubation time and split schedules based on doubling time.</p>
-
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:1rem; margin-bottom:1.25rem;">
           <div>
-            <label style="font-size:0.8rem; color:var(--text-muted);">Initial Seeding Count (N₀)</label>
-            <input type="number" id="growN0" value="1000000" step="100000" min="1000" />
+            <label style="font-size:0.8rem; color:var(--text-muted);">Initial Count (N₀)</label>
+            <input type="number" id="growN0" value="1000000" step="100000" />
           </div>
           <div>
-            <label style="font-size:0.8rem; color:var(--text-muted);">Doubling Time (hours)</label>
-            <input type="number" id="growTd" value="24.0" step="0.5" min="6" />
+            <label style="font-size:0.8rem; color:var(--text-muted);">Doubling Time (hrs)</label>
+            <input type="number" id="growTd" value="24.0" step="0.5" />
           </div>
           <div>
-            <label style="font-size:0.8rem; color:var(--text-muted);">Target Harvest Count (Nt)</label>
-            <input type="number" id="growNt" value="8000000" step="500000" min="10000" />
+            <label style="font-size:0.8rem; color:var(--text-muted);">Target Count (Nt)</label>
+            <input type="number" id="growNt" value="8000000" step="500000" />
           </div>
         </div>
-
         <div style="background:#090d16; border:1px solid var(--border); border-radius:8px; padding:1rem;">
-          <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+          <div style="display:flex; justify-content:space-between;">
             <span style="font-size:0.85rem; color:var(--text-muted);">Estimated Incubation:</span>
             <span id="growTimeDisplay" style="font-size:1.15rem; font-weight:700; color:var(--accent);">72.0 hrs (3.0 days)</span>
-          </div>
-          <div style="display:flex; justify-content:space-between;">
-            <span style="font-size:0.85rem; color:var(--text-muted);">Generations (Doublings):</span>
-            <span id="growDoublingsDisplay" style="font-size:1.15rem; font-weight:700; color:var(--accent);">3.0 doublings</span>
           </div>
         </div>
       </div>
     </main>
 
-    <!-- Placeholder for Other Modules -->
-    <main id="other-modules" class="module-view" style="display:none;">
-      <div class="card">
-        <h2 id="other-module-title" style="font-size:1.2rem; margin-bottom:0.5rem;">Module</h2>
-        <p style="color:var(--text-muted); font-size:0.9rem;">This module is queued for development.</p>
+    <!-- ======================================================== -->
+    <!-- MODULE 2: REAGENTS & SOLUTIONS                           -->
+    <!-- ======================================================== -->
+    <main id="reagents-module" class="module-view" style="display: none;">
+      <!-- EXPERT REAGENT GRID SUITE -->
+      <section id="reagents-batch-grid-section" class="expert-batch-section" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+          <div>
+            <h3 style="font-size: 1.05rem; color: #fff;">📊 Batch Reagent & Buffer Grid (Spreadsheet Mode)</h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">
+              High-throughput recipe matrices with live parallel calculations and formula-preserving Excel exports.
+            </p>
+          </div>
+          <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
+            <button class="preset-btn active-subtab" id="rg-subtab-solid" style="background:#0284c7; color:#fff;">1. Solid Solutes</button>
+            <button class="preset-btn" id="rg-subtab-liquid">2. Liquid Dilutions (C₁V₁)</button>
+            <button class="preset-btn" id="rg-subtab-acid">3. Concentrated Acids/Bases</button>
+          </div>
+        </div>
+
+        <!-- 1. SOLID SOLUTES BATCH GRID -->
+        <div id="grid-pane-solid" class="rg-grid-pane">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+            <span style="font-size:0.85rem; font-weight:600; color:#38bdf8;">Solid Solutes & Buffer Salts Matrix</span>
+            <div style="display:flex; gap:0.4rem;">
+              <button class="preset-btn" id="btn-add-solid-row" style="background:#0284c7; color:#fff;">+ Add Solute</button>
+              <button class="btn-export" id="btn-export-solid-excel">📊 Export Spreadsheet (.csv with formulas)</button>
+            </div>
+          </div>
+          <div class="batch-table-container">
+            <table class="batch-grid" id="table-grid-solid">
+              <thead>
+                <tr>
+                  <th>Solute / Buffer</th>
+                  <th>Preset</th>
+                  <th>MW (g/mol)</th>
+                  <th>Purity %</th>
+                  <th>Target Conc</th>
+                  <th>Unit</th>
+                  <th>Target Vol (mL)</th>
+                  <th>Mass to Weigh (g)</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="body-grid-solid"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 2. LIQUID STOCK DILUTIONS BATCH GRID -->
+        <div id="grid-pane-liquid" class="rg-grid-pane" style="display:none;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+            <span style="font-size:0.85rem; font-weight:600; color:#38bdf8;">Liquid Stock Dilution Matrix (C₁V₁ = C₂V₂)</span>
+            <div style="display:flex; gap:0.4rem;">
+              <button class="preset-btn" id="btn-add-liquid-row" style="background:#0284c7; color:#fff;">+ Add Dilution</button>
+              <button class="btn-export" id="btn-export-liquid-excel">📊 Export Spreadsheet (.csv with formulas)</button>
+            </div>
+          </div>
+          <div class="batch-table-container">
+            <table class="batch-grid" id="table-grid-liquid">
+              <thead>
+                <tr>
+                  <th>Component / Stock</th>
+                  <th>Stock Conc (C₁)</th>
+                  <th>Target Conc (C₂)</th>
+                  <th>Unit</th>
+                  <th>Target Vol (V₂ mL)</th>
+                  <th>Stock Required (V₁ mL)</th>
+                  <th>Diluent to Add (mL)</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="body-grid-liquid"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 3. CONCENTRATED ACIDS/BASES BATCH GRID -->
+        <div id="grid-pane-acid" class="rg-grid-pane" style="display:none;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+            <div>
+              <span style="font-size:0.85rem; font-weight:600; color:#38bdf8;">Concentrated Acids & Bases Matrix</span>
+              <span style="font-size:0.75rem; color:#f59e0b; margin-left:0.5rem;">⚠️ Safety: Add acid to water</span>
+            </div>
+            <div style="display:flex; gap:0.4rem;">
+              <button class="preset-btn" id="btn-add-acid-row" style="background:#0284c7; color:#fff;">+ Add Acid/Base</button>
+              <button class="btn-export" id="btn-export-acid-excel">📊 Export Spreadsheet (.csv with formulas)</button>
+            </div>
+          </div>
+          <div class="batch-table-container">
+            <table class="batch-grid" id="table-grid-acid">
+              <thead>
+                <tr>
+                  <th>Reagent Name</th>
+                  <th>Commercial Preset</th>
+                  <th>Assay %</th>
+                  <th>Density (g/mL)</th>
+                  <th>MW (g/mol)</th>
+                  <th>Stock Molarity (M)</th>
+                  <th>Target M (M)</th>
+                  <th>Final Vol (mL)</th>
+                  <th>Acid Vol (mL)</th>
+                  <th>Water Vol (mL)</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="body-grid-acid"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- STANDARD GUIDED WIZARD -->
+      <div id="reagents-wizard-container">
+        <div class="wizard-stepper" id="rg-stepper">
+          <div class="step-node active" id="rg-node-1">1</div>
+          <div class="step-node" id="rg-node-2">2</div>
+          <div class="step-node" id="rg-node-3">3</div>
+          <div class="step-node" id="rg-node-4">4</div>
+        </div>
+
+        <div class="card">
+          <!-- STEP 1 -->
+          <div id="rg-step-1" class="rg-pane">
+            <h3 style="font-size: 1.15rem; color: #fff; margin-bottom: 0.35rem;">Step 1: Solute Physical State</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">Select the state of your starting chemical or biological asset.</p>
+
+            <div class="tile-grid">
+              <div class="tile-card selected" id="tile-solid" data-state="solid">
+                <span class="tile-icon">
+                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+                    <line x1="2" y1="20" x2="22" y2="20" stroke="#64748b" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M3 20C4.5 15.5 8 11.5 12 11.5C16 11.5 19.5 15.5 21 20H3Z" fill="#f8fafc" fill-opacity="0.9" stroke="#94a3b8" stroke-width="1.2"/>
+                    <circle cx="12" cy="7" r="0.9" fill="#ffffff"/><circle cx="9" cy="9.5" r="0.8" fill="#ffffff"/><circle cx="15" cy="9" r="0.8" fill="#ffffff"/>
+                    <path d="M12 2L12.7 4.3L15 5L12.7 5.7L12 8L11.3 5.7L9 5L11.3 4.3L12 2Z" fill="#38bdf8"/>
+                  </svg>
+                </span>
+                <span class="tile-title">Solid Powder</span>
+                <span class="tile-desc">Lyophilized cakes, salt crystals, bulk bottles</span>
+              </div>
+              <div class="tile-card" id="tile-liquid" data-state="liquid">
+                <span class="tile-icon">💧</span>
+                <span class="tile-title">Liquid Stock (C₁V₁)</span>
+                <span class="tile-desc">10X buffers, glycerol, concentrated solutes</span>
+              </div>
+              <div class="tile-card" id="tile-acid" data-state="acid">
+                <span class="tile-icon">⚗️</span>
+                <span class="tile-title">Concentrated Acid / Base</span>
+                <span class="tile-desc">37% HCl, Glacial Acetic, 50% NaOH</span>
+              </div>
+            </div>
+
+            <div class="wizard-btn-row" style="justify-content: flex-end;">
+              <button class="btn-primary" id="rg-next-1">Next: Source Specs →</button>
+            </div>
+          </div>
+
+          <!-- STEP 2 -->
+          <div id="rg-step-2" class="rg-pane" style="display: none;">
+            <h3 style="font-size: 1.15rem; color: #fff; margin-bottom: 0.35rem;">Step 2: Source Asset Parameters</h3>
+            <div id="rg-input-solid-box">
+              <label style="display:block; font-size:0.8rem; font-weight:600; color:var(--text-muted); margin-bottom:0.4rem;">
+                Aliquot Vial Mass (Optional: leave blank to weigh out fresh powder)
+              </label>
+              <div class="input-row">
+                <input type="number" id="rg-solid-mass" placeholder="e.g. 10 (Leave blank if weighing custom mass)" min="0" step="0.1" />
+                <select id="rg-solid-mass-unit" style="min-width: 90px;">
+                  <option value="mg">mg</option><option value="g">g</option><option value="ug">µg</option>
+                </select>
+              </div>
+            </div>
+            <div id="rg-input-liquid-box" style="display: none;">
+              <label style="display:block; font-size:0.8rem; font-weight:600; color:var(--text-muted); margin-bottom:0.4rem;">Stock Concentration (C₁)</label>
+              <div class="input-row">
+                <input type="number" id="rg-liquid-c1" value="10" min="0" step="0.1" />
+                <select id="rg-liquid-c1-unit" style="min-width: 100px;">
+                  <option value="X">X (Fold)</option><option value="M">M</option><option value="mM">mM</option><option value="pct">% (v/v)</option>
+                </select>
+              </div>
+            </div>
+            <div id="rg-input-acid-box" style="display: none;">
+              <label style="display:block; font-size:0.8rem; font-weight:600; color:var(--text-muted); margin-bottom:0.4rem;">Commercial Acid/Base Preset</label>
+              <select id="rg-acid-preset" style="width: 100%; margin-bottom: 1rem;">
+                <option value="hcl">Hydrochloric Acid (37% w/w, 1.19 g/mL, 36.46 g/mol → 12.08 M)</option>
+                <option value="acetic">Glacial Acetic Acid (99.8% w/w, 1.05 g/mL, 60.05 g/mol → 17.48 M)</option>
+                <option value="naoh">Sodium Hydroxide (50% w/w, 1.51 g/mL, 40.00 g/mol → 18.88 M)</option>
+                <option value="custom">Custom Commercial Acid / Base...</option>
+              </select>
+              <div id="rg-acid-custom-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
+                <div><label style="font-size:0.75rem; color:var(--text-muted);">Assay %</label><input type="number" id="rg-acid-assay" value="37" /></div>
+                <div><label style="font-size:0.75rem; color:var(--text-muted);">Density</label><input type="number" id="rg-acid-density" value="1.19" step="0.01" /></div>
+                <div><label style="font-size:0.75rem; color:var(--text-muted);">MW</label><input type="number" id="rg-acid-mw" value="36.46" step="0.01" /></div>
+              </div>
+            </div>
+            <div class="wizard-btn-row">
+              <button class="btn-secondary" id="rg-back-2">← Back</button>
+              <button class="btn-primary" id="rg-next-2">Next: Target Solution →</button>
+            </div>
+          </div>
+
+          <!-- STEP 3 -->
+          <div id="rg-step-3" class="rg-pane" style="display: none;">
+            <h3 style="font-size: 1.15rem; color: #fff; margin-bottom: 0.35rem;">Step 3: Target Working Solution</h3>
+            <label style="display:block; font-size:0.8rem; font-weight:600; color:var(--text-muted); margin-bottom:0.4rem;">Target Concentration</label>
+            <div class="input-row">
+              <input type="number" id="rg-target-conc" value="50" min="0" step="0.1" />
+              <select id="rg-target-conc-unit" style="min-width: 120px;">
+                <option value="mM">mM</option><option value="M">M</option><option value="uM">µM</option><option value="pct_wv">% (w/v)</option><option value="mg_ml">mg/mL</option><option value="X">X (Fold)</option>
+              </select>
+            </div>
+            <label style="display:block; font-size:0.8rem; font-weight:600; color:var(--text-muted); margin-bottom:0.4rem;">Final Solution Volume</label>
+            <div class="input-row">
+              <input type="number" id="rg-target-vol" value="500" min="0" step="1" />
+              <select id="rg-target-vol-unit" style="min-width: 90px;"><option value="mL">mL</option><option value="L">L</option><option value="uL">µL</option></select>
+            </div>
+            <div class="wizard-btn-row">
+              <button class="btn-secondary" id="rg-back-3">← Back</button>
+              <button class="btn-primary" id="rg-next-3">Next: Solute Physics →</button>
+            </div>
+          </div>
+
+          <!-- STEP 4 -->
+          <div id="rg-step-4" class="rg-pane" style="display: none;">
+            <h3 style="font-size: 1.15rem; color: #fff; margin-bottom: 0.35rem;">Step 4: Solute Physics & Bench SOP</h3>
+            <div id="rg-physics-section" style="background:#090d16; border:1px solid var(--border); border-radius:8px; padding:1rem; margin-bottom:1.25rem;">
+              <select id="rg-preset-dropdown" style="width:100%; margin-bottom:0.75rem;">
+                <option value="custom">Custom Solute / Chemical...</option>
+                <option value="tris_base">Tris Base (MW 121.14 g/mol)</option>
+                <option value="nacl">Sodium Chloride - NaCl (MW 58.44 g/mol)</option>
+                <option value="edta">EDTA Disodium Dihydrate (MW 372.24 g/mol)</option>
+                <option value="hepes">HEPES Free Acid (MW 238.30 g/mol)</option>
+                <option value="mgso4_anh">Magnesium Sulfate Anhydrous (MW 120.37 g/mol)</option>
+                <option value="mgso4_hep">Magnesium Sulfate Heptahydrate (MW 246.47 g/mol)</option>
+              </select>
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.75rem;">
+                <div><label style="font-size:0.75rem; color:var(--text-muted);">MW (g/mol)</label><input type="number" id="rg-mw" value="121.14" step="0.01" /></div>
+                <div><label style="font-size:0.75rem; color:var(--text-muted);">Purity (%)</label><input type="number" id="rg-purity" value="100" /></div>
+              </div>
+            </div>
+
+            <div style="background:#090d16; border:1px solid #10b981; border-radius:8px; padding:1.25rem; margin-bottom:1rem;">
+              <div style="color:#10b981; font-weight:700; font-size:0.95rem; margin-bottom:0.75rem;">✓ Standard Operating Procedure (SOP)</div>
+              <div id="rg-sop-content" style="font-size:0.88rem; line-height:1.6; color:#cbd5e1;"></div>
+              <button class="preset-btn" id="rg-copy-sop-btn" style="width:100%; margin-top:0.75rem; background:#1e293b; color:#fff; padding:0.5rem; font-weight:600;">
+                Copy SOP to Clipboard
+              </button>
+            </div>
+
+            <div id="rg-expert-container" class="expert-box" style="display: none;">
+              <div style="color:var(--accent); font-weight:700; font-size:0.85rem; margin-bottom:0.4rem;">EXPERT MODE: Mathematical Derivation</div>
+              <div id="rg-expert-formula" style="font-size:0.8rem; color:#94a3b8; line-height:1.5;"></div>
+            </div>
+
+            <div class="wizard-btn-row">
+              <button class="btn-secondary" id="rg-back-4">← Back</button>
+              <button class="btn-primary" id="rg-recalc-btn">Recalculate Protocol</button>
+            </div>
+          </div>
+        </div>
       </div>
+    </main>
+
+    <!-- ======================================================== -->
+    <!-- MODULE 3: CONVERTERS, MECHANICS & OPTICS                 -->
+    <!-- ======================================================== -->
+    <main id="conversions-module" class="module-view" style="display: none;">
+      <!-- Module 3 Sub-Navigation Tabs -->
+      <div class="m3-subtabs">
+        <button class="preset-btn" id="m3-tab-quick" style="background:#0284c7; color:#fff;">⚡ Quick Bench Converters</button>
+        <button class="preset-btn" id="m3-tab-vessels">📐 Culture Vessel Scale-Up Matrix</button>
+        <button class="preset-btn" id="m3-tab-flow">🌈 Flow Cytometry Panel & Spectrum Viewer</button>
+        <button class="preset-btn" id="m3-tab-studio">🛠️ Formula Studio <span class="pro-badge">PRO</span></button>
+      </div>
+
+      <!-- PANE 1: QUICK BENCH CONVERTERS -->
+      <section id="pane-m3-quick" class="m3-pane" style="display: block;">
+        <div class="converter-grid">
+          <!-- CARD 1: Centrifuge RCF ↔ RPM -->
+          <div class="conv-card">
+            <div>
+              <div class="conv-card-header">
+                <span class="conv-title">🌀 Centrifuge RCF ↔ RPM</span>
+                <span style="font-size:0.75rem; color:var(--accent);">Rotor Geometry</span>
+              </div>
+              <div style="margin-bottom:0.5rem;">
+                <label style="font-size:0.75rem; color:var(--text-muted);">Rotor Radius (cm)</label>
+                <div style="display:flex; gap:0.4rem;">
+                  <input type="number" id="cent-radius" value="8.4" step="0.1" min="1" />
+                  <select id="cent-preset" style="max-width:130px; font-size:0.8rem;">
+                    <option value="8.4">Eppendorf 5424 (8.4 cm)</option>
+                    <option value="16.8">Beckman SX4750 (16.8 cm)</option>
+                    <option value="10.2">Sorvall Legend (10.2 cm)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="conv-row">
+                <div>
+                  <label style="font-size:0.75rem; color:var(--text-muted);">RCF (g-force)</label>
+                  <input type="number" id="cent-rcf" value="300" step="50" min="0" />
+                </div>
+                <div>
+                  <label style="font-size:0.75rem; color:var(--text-muted);">Speed (RPM)</label>
+                  <input type="number" id="cent-rpm" value="1788" step="100" min="0" />
+                </div>
+              </div>
+            </div>
+            <div class="conv-chip-group">
+              <span class="conv-chip" id="chip-spin-cell">Cells: 300g</span>
+              <span class="conv-chip" id="chip-spin-ficoll">PBMC Ficoll: 400g</span>
+              <span class="conv-chip" id="chip-spin-bacteria">Bacteria: 4000g</span>
+              <span class="conv-chip" id="chip-spin-column">Miniprep: 16000g</span>
+            </div>
+          </div>
+
+          <!-- CARD 2: Volume & Liquid Units -->
+          <div class="conv-card">
+            <div>
+              <div class="conv-card-header">
+                <span class="conv-title">💧 Volume & Liquids</span>
+                <span style="font-size:0.75rem; color:var(--text-muted);">Bench & Bulk Carboys</span>
+              </div>
+              <div class="conv-row">
+                <div>
+                  <label style="font-size:0.75rem; color:var(--text-muted);">Microliters (µL)</label>
+                  <input type="number" id="vol-ul" value="1000" step="50" />
+                </div>
+                <div>
+                  <label style="font-size:0.75rem; color:var(--text-muted);">Milliliters (mL)</label>
+                  <input type="number" id="vol-ml" value="1.0" step="0.5" />
+                </div>
+              </div>
+              <div class="conv-row">
+                <div>
+                  <label style="font-size:0.75rem; color:var(--text-muted);">Liters (L)</label>
+                  <input type="number" id="vol-l" value="0.001" step="0.1" />
+                </div>
+                <div>
+                  <label style="font-size:0.75rem; color:var(--text-muted);">US Gallons (gal)</label>
+                  <input type="number" id="vol-gal" value="0.000264" step="0.1" />
+                </div>
+              </div>
+            </div>
+            <div class="conv-chip-group">
+              <span class="conv-chip" id="chip-vol-carboy">1 Carboy = 20 L (5.28 gal)</span>
+              <span class="conv-chip" id="chip-vol-falcon">Falcon = 50 mL</span>
+            </div>
+          </div>
+
+          <!-- CARD 3: Temperature Benchmarks -->
+          <div class="conv-card">
+            <div>
+              <div class="conv-card-header">
+                <span class="conv-title">🌡️ Temperature & Cryo</span>
+                <span style="font-size:0.75rem; color:var(--text-muted);">Scale Sync</span>
+              </div>
+              <div class="conv-row">
+                <div>
+                  <label style="font-size:0.75rem; color:var(--text-muted);">Celsius (°C)</label>
+                  <input type="number" id="temp-c" value="37.0" step="1" />
+                </div>
+                <div>
+                  <label style="font-size:0.75rem; color:var(--text-muted);">Fahrenheit (°F)</label>
+                  <input type="number" id="temp-f" value="98.6" step="1" />
+                </div>
+              </div>
+              <div>
+                <label style="font-size:0.75rem; color:var(--text-muted);">Kelvin (K)</label>
+                <input type="number" id="temp-k" value="310.15" step="1" />
+              </div>
+            </div>
+            <div class="conv-chip-group">
+              <span class="conv-chip" id="chip-temp-ln2">LN₂: -196°C</span>
+              <span class="conv-chip" id="chip-temp-ultra">-80°C Freezer</span>
+              <span class="conv-chip" id="chip-temp-cold">4°C Cold Room</span>
+              <span class="conv-chip" id="chip-temp-body">37°C Incubator</span>
+              <span class="conv-chip" id="chip-temp-auto">121°C Autoclave</span>
+            </div>
+          </div>
+
+          <!-- CARD 4: Mass & Micro Scales -->
+          <div class="conv-card">
+            <div>
+              <div class="conv-card-header">
+                <span class="conv-title">⚖️ Mass & Micro Scales</span>
+                <span style="font-size:0.75rem; color:var(--text-muted);">Analytical Balance</span>
+              </div>
+              <div class="conv-row">
+                <div>
+                  <label style="font-size:0.75rem; color:var(--text-muted);">Nanograms (ng)</label>
+                  <input type="number" id="mass-ng" value="1000000" step="1000" />
+                </div>
+                <div>
+                  <label style="font-size:0.75rem; color:var(--text-muted);">Micrograms (µg)</label>
+                  <input type="number" id="mass-ug" value="1000" step="10" />
+                </div>
+              </div>
+              <div class="conv-row">
+                <div>
+                  <label style="font-size:0.75rem; color:var(--text-muted);">Milligrams (mg)</label>
+                  <input type="number" id="mass-mg" value="1.0" step="0.5" />
+                </div>
+                <div>
+                  <label style="font-size:0.75rem; color:var(--text-muted);">Grams (g)</label>
+                  <input type="number" id="mass-g" value="0.001" step="0.01" />
+                </div>
+              </div>
+            </div>
+            <div class="conv-chip-group">
+              <span class="conv-chip" id="chip-mass-lb">1 kg = 2.205 lbs</span>
+            </div>
+          </div>
+
+          <!-- CARD 5: Bioprocess Pressure -->
+          <div class="conv-card">
+            <div>
+              <div class="conv-card-header">
+                <span class="conv-title">💨 Bioprocess Pressure</span>
+                <span style="font-size:0.75rem; color:var(--text-muted);">TFF, Gases, Autoclave</span>
+              </div>
+              <div class="conv-row">
+                <div>
+                  <label style="font-size:0.75rem; color:var(--text-muted);">PSI (lbf/in²)</label>
+                  <input type="number" id="press-psi" value="15.0" step="1" />
+                </div>
+                <div>
+                  <label style="font-size:0.75rem; color:var(--text-muted);">Bar</label>
+                  <input type="number" id="press-bar" value="1.034" step="0.1" />
+                </div>
+              </div>
+              <div class="conv-row">
+                <div>
+                  <label style="font-size:0.75rem; color:var(--text-muted);">Kilopascals (kPa)</label>
+                  <input type="number" id="press-kpa" value="103.4" step="5" />
+                </div>
+                <div>
+                  <label style="font-size:0.75rem; color:var(--text-muted);">Standard Atm (atm)</label>
+                  <input type="number" id="press-atm" value="1.02" step="0.1" />
+                </div>
+              </div>
+            </div>
+            <div class="conv-chip-group">
+              <span class="conv-chip" id="chip-press-tank">Gas Tank: ~2000 psi</span>
+              <span class="conv-chip" id="chip-press-auto">Autoclave: 15 psi (1 bar)</span>
+            </div>
+          </div>
+
+          <!-- CARD 6: Scientific Notation & Exponents -->
+          <div class="conv-card">
+            <div>
+              <div class="conv-card-header">
+                <span class="conv-title">🔢 Scientific Notation & Exponents</span>
+                <span style="font-size:0.75rem; color:var(--text-muted);">Decimal Parser</span>
+              </div>
+              <div style="margin-bottom:0.75rem;">
+                <label style="font-size:0.75rem; color:var(--text-muted);">Raw Decimal Number</label>
+                <input type="number" id="sci-decimal" value="0.000045" step="0.00001" />
+              </div>
+              <div class="conv-row">
+                <div>
+                  <label style="font-size:0.75rem; color:var(--text-muted);">Mantissa (Base)</label>
+                  <input type="number" id="sci-mantissa" value="4.5" step="0.1" />
+                </div>
+                <div>
+                  <label style="font-size:0.75rem; color:var(--text-muted);">Exponent (10^x)</label>
+                  <input type="number" id="sci-exponent" value="-5" step="1" />
+                </div>
+              </div>
+            </div>
+            <div style="background:#090d16; border-radius:6px; padding:0.4rem 0.6rem; font-family:monospace; font-size:0.85rem; color:var(--accent);" id="sci-formatted-output">
+              Output: 4.50 × 10⁻⁵
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PANE 2: CULTURE VESSEL SCALE-UP MATRIX (ENHANCED) -->
+      <section id="pane-m3-vessels" class="m3-pane" style="display:none;">
+        <div class="card" style="margin-bottom:1.25rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; margin-bottom:0.75rem;">
+            <div>
+              <h3 style="font-size:1.15rem; color:#1c1917; font-weight:800;">📐 Adherent Culture Vessel Sizing & Scale-Up Matrix</h3>
+              <p style="font-size:0.85rem; color:var(--text-muted);">
+                Interactive bioprocess transfer calculator with customizable, rearrangable vessel engineering tables.
+              </p>
+            </div>
+          </div>
+
+          <!-- ADVANCED VESSEL SCALE-UP CALCULATOR -->
+          <div style="background:#ffffff; border:1.5px solid var(--accent); border-radius:12px; padding:1.25rem; margin-bottom:1.5rem; box-shadow:var(--shadow-md);">
+            <div style="font-size:0.95rem; font-weight:800; color:var(--accent); margin-bottom:0.85rem; display:flex; align-items:center; gap:0.4rem;">
+              <span>⚡</span> Bioprocess Vessel Scale-Up & Inoculum Transfer Balancer
+            </div>
+
+            <div class="scaleup-grid-inputs">
+              <div>
+                <label>Source Vessel</label>
+                <select id="scale-source-vessel">
+                  <option value="9.5">6-Well (9.5 cm²)</option>
+                  <option value="25">T-25 Flask (25 cm²)</option>
+                  <option value="75" selected>T-75 Flask (75 cm²)</option>
+                  <option value="175">T-175 Flask (175 cm²)</option>
+                  <option value="225">T-225 Flask (225 cm²)</option>
+                  <option value="636">1-Layer CellSTACK (636 cm²)</option>
+                </select>
+              </div>
+
+              <div>
+                <label>Target Vessel Type</label>
+                <select id="scale-target-vessel">
+                  <option value="75">T-75 Flask (75 cm²)</option>
+                  <option value="175" selected>T-175 Flask (175 cm²)</option>
+                  <option value="225">T-225 Flask (225 cm²)</option>
+                  <option value="636">1-Layer CellSTACK (636 cm²)</option>
+                  <option value="1272">2-Layer CellSTACK (1,272 cm²)</option>
+                  <option value="3180">5-Layer CellSTACK (3,180 cm²)</option>
+                </select>
+              </div>
+
+              <div>
+                <label>Number of Target Vessels</label>
+                <input type="number" id="scale-target-count" value="1" min="1" max="100" step="1" />
+              </div>
+
+              <div>
+                <label>Current Stock Conc (cells/mL)</label>
+                <div style="display:flex; align-items:center; gap:0.35rem;">
+                  <input type="number" id="scale-stock-base" value="2.0" step="0.1" min="0" style="width:100%;" />
+                  <span style="font-size:0.75rem; color:var(--text-muted); white-space:nowrap;">×10^</span>
+                  <input type="number" id="scale-stock-exp" value="6" step="1" style="max-width:55px;" />
+                </div>
+              </div>
+
+              <div>
+                <label>Desired Seeding Density (cells/cm²)</label>
+                <input type="number" id="scale-target-density" value="25000" step="1000" min="1000" />
+                <div style="display:flex; gap:0.3rem; margin-top:0.35rem;">
+                  <span class="conv-chip" id="chip-density-low">Low (1e4)</span>
+                  <span class="conv-chip" id="chip-density-std">Std (2.5e4)</span>
+                  <span class="conv-chip" id="chip-density-high">High (4e4)</span>
+                </div>
+              </div>
+
+              <div>
+                <label>Target Total Working Volume (mL)</label>
+                <input type="number" id="scale-target-vol" value="30.0" step="1" min="0.5" />
+                <span style="font-size:0.7rem; color:var(--text-muted); display:block; margin-top:0.25rem;">
+                  Auto-synced with target vessel capacity.
+                </span>
+              </div>
+            </div>
+
+            <!-- Calculated Metrics Ribbon -->
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:0.6rem; margin-bottom:1rem;">
+              <div class="scaleup-stat-card">
+                <span class="scaleup-stat-label">Area & Expansion</span>
+                <span class="scaleup-stat-val" id="scale-stat-area">175 cm² (2.33×)</span>
+              </div>
+              <div class="scaleup-stat-card">
+                <span class="scaleup-stat-label">Total Cells Needed</span>
+                <span class="scaleup-stat-val" id="scale-stat-cells">4.38 × 10⁶</span>
+              </div>
+              <div class="scaleup-stat-card" style="border-color:var(--accent);">
+                <span class="scaleup-stat-label" style="color:var(--accent);">Vol to Transfer</span>
+                <span class="scaleup-stat-val" id="scale-stat-transfer" style="color:var(--accent);">2.19 mL</span>
+              </div>
+              <div class="scaleup-stat-card">
+                <span class="scaleup-stat-label">Fresh Media to Add</span>
+                <span class="scaleup-stat-val" id="scale-stat-media">27.81 mL</span>
+              </div>
+              <div class="scaleup-stat-card">
+                <span class="scaleup-stat-label">Final Inoculum Conc</span>
+                <span class="scaleup-stat-val" id="scale-stat-finalconc">1.46 × 10⁵/mL</span>
+              </div>
+            </div>
+
+            <div id="scaleup-sop-box" style="background:#fdfbf7; border:1px dashed var(--border-strong); border-radius:8px; padding:0.85rem; font-size:0.85rem; color:#44403c; line-height:1.5;"></div>
+            <button class="preset-btn" id="btn-copy-scaleup-sop" style="width:100%; margin-top:0.6rem; background:#ede6da; color:#1c1917; font-weight:700;">
+              Copy Scale-Up Protocol to Clipboard
+            </button>
+          </div>
+
+          <!-- TABLE CONTROLS BAR: REARRANGE & HIDE -->
+          <div class="table-controls-bar">
+            <div class="controls-sub-row">
+              <span class="controls-label">Columns:</span>
+              <div id="col-toggle-container" style="display:flex; gap:0.35rem; flex-wrap:wrap;"></div>
+              <button class="preset-btn" id="btn-reset-table-layout" style="margin-left:auto; font-size:0.75rem;">
+                ↺ Reset Table Layout
+              </button>
+            </div>
+            <div class="controls-sub-row" id="hidden-rows-bar" style="display:none;">
+              <span class="controls-label">Hidden:</span>
+              <div id="hidden-rows-container" style="display:flex; gap:0.35rem; flex-wrap:wrap;"></div>
+              <button class="preset-btn" id="btn-show-all-rows" style="font-size:0.72rem;">Show All Vessels</button>
+            </div>
+          </div>
+
+          <div class="batch-table-container">
+            <table class="vessel-matrix-table" id="interactive-vessel-table">
+              <thead id="vessel-table-head"></thead>
+              <tbody id="vessel-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- PANE 3: FLOW CYTOMETRY PANEL BUILDER & SVG SPECTRUM VIEWER -->
+      <section id="pane-m3-flow" class="m3-pane" style="display:none;">
+        <div class="card" style="margin-bottom:1.25rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; margin-bottom:0.75rem;">
+            <div>
+              <h3 style="font-size:1.1rem; color:#fff;">🌈 Mini Flow Cytometry Panel Builder & Spectrum Viewer</h3>
+              <p style="font-size:0.85rem; color:var(--text-muted);">
+                Simulate emission spectra across excitation lasers and test for optical spillover and filter collisions.
+              </p>
+            </div>
+            <button class="btn-export" id="btn-reset-flow-panel">Reset Panel</button>
+          </div>
+
+          <div class="laser-bar">
+            <span style="font-size:0.8rem; font-weight:700; color:#cbd5e1; margin-right:0.5rem;">Cytometer Lasers:</span>
+            <label class="laser-checkbox" style="color:#a855f7;">
+              <input type="checkbox" id="laser-405" checked /> 405 nm (Violet)
+            </label>
+            <label class="laser-checkbox" style="color:#38bdf8;">
+              <input type="checkbox" id="laser-488" checked /> 488 nm (Blue)
+            </label>
+            <label class="laser-checkbox" style="color:#eab308;">
+              <input type="checkbox" id="laser-561" checked /> 561 nm (Yellow-Green)
+            </label>
+            <label class="laser-checkbox" style="color:#ef4444;">
+              <input type="checkbox" id="laser-640" checked /> 640 nm (Red)
+            </label>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:0.75rem; margin-bottom:1.25rem;">
+            <div style="background:#090d16; border:1px solid var(--border); border-radius:6px; padding:0.6rem;">
+              <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:0.25rem;">Channel 1 (Marker)</label>
+              <input type="text" id="flow-mark-1" value="CD3" class="grid-input" style="margin-bottom:0.35rem;" />
+              <select id="flow-dye-1" class="grid-input flow-dye-select">
+                <option value="fitc" selected>FITC (488 Ex / 519 Em)</option>
+                <option value="bb515">BB515 (488 Ex / 515 Em)</option>
+                <option value="pe">PE (561 Ex / 578 Em)</option>
+                <option value="percp_cy55">PerCP-Cy5.5 (488 Ex / 695 Em)</option>
+                <option value="apc">APC (640 Ex / 660 Em)</option>
+                <option value="bv421">BV421 (405 Ex / 421 Em)</option>
+                <option value="bv510">BV510 (405 Ex / 510 Em)</option>
+                <option value="none">-- Empty Slot --</option>
+              </select>
+            </div>
+
+            <div style="background:#090d16; border:1px solid var(--border); border-radius:6px; padding:0.6rem;">
+              <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:0.25rem;">Channel 2 (Marker)</label>
+              <input type="text" id="flow-mark-2" value="CD4" class="grid-input" style="margin-bottom:0.35rem;" />
+              <select id="flow-dye-2" class="grid-input flow-dye-select">
+                <option value="pe" selected>PE (561 Ex / 578 Em)</option>
+                <option value="pe_cy7">PE-Cy7 (561 Ex / 778 Em)</option>
+                <option value="fitc">FITC (488 Ex / 519 Em)</option>
+                <option value="apc">APC (640 Ex / 660 Em)</option>
+                <option value="bv421">BV421 (405 Ex / 421 Em)</option>
+                <option value="none">-- Empty Slot --</option>
+              </select>
+            </div>
+
+            <div style="background:#090d16; border:1px solid var(--border); border-radius:6px; padding:0.6rem;">
+              <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:0.25rem;">Channel 3 (Marker)</label>
+              <input type="text" id="flow-mark-3" value="CD8" class="grid-input" style="margin-bottom:0.35rem;" />
+              <select id="flow-dye-3" class="grid-input flow-dye-select">
+                <option value="apc" selected>APC (640 Ex / 660 Em)</option>
+                <option value="af647">Alexa Fluor 647 (640 Ex / 668 Em)</option>
+                <option value="apc_cy7">APC-Cy7 (640 Ex / 785 Em)</option>
+                <option value="percp_cy55">PerCP-Cy5.5 (488 Ex / 695 Em)</option>
+                <option value="none">-- Empty Slot --</option>
+              </select>
+            </div>
+
+            <div style="background:#090d16; border:1px solid var(--border); border-radius:6px; padding:0.6rem;">
+              <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:0.25rem;">Channel 4 (Marker)</label>
+              <input type="text" id="flow-mark-4" value="Viability / DAPI" class="grid-input" style="margin-bottom:0.35rem;" />
+              <select id="flow-dye-4" class="grid-input flow-dye-select">
+                <option value="bv421" selected>BV421 / DAPI (405 Ex / 421 Em)</option>
+                <option value="bv510">BV510 (405 Ex / 510 Em)</option>
+                <option value="pe_cy7">PE-Cy7 (561 Ex / 778 Em)</option>
+                <option value="none">-- Empty Slot --</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="spectrum-display-box">
+            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted); margin-bottom:0.4rem;">
+              <span>Near-UV (380 nm)</span>
+              <span>Visible Spectrum (380 - 750 nm)</span>
+              <span>Near-IR (800 nm)</span>
+            </div>
+
+            <svg id="spectrumSvg" width="100%" height="160" viewBox="0 0 800 160">
+              <line x1="0" y1="140" x2="800" y2="140" stroke="#334155" stroke-width="1.5" />
+              <line id="laser-line-405" x1="47.6" y1="20" x2="47.6" y2="140" stroke="#a855f7" stroke-width="2" stroke-dasharray="3 3" opacity="0.8"/>
+              <text x="52" y="32" fill="#a855f7" font-size="10" font-weight="700">405 nm</text>
+
+              <line id="laser-line-488" x1="205.7" y1="20" x2="205.7" y2="140" stroke="#38bdf8" stroke-width="2" stroke-dasharray="3 3" opacity="0.8"/>
+              <text x="210" y="32" fill="#38bdf8" font-size="10" font-weight="700">488 nm</text>
+
+              <line id="laser-line-561" x1="344.7" y1="20" x2="344.7" y2="140" stroke="#eab308" stroke-width="2" stroke-dasharray="3 3" opacity="0.8"/>
+              <text x="349" y="32" fill="#eab308" font-size="10" font-weight="700">561 nm</text>
+
+              <line id="laser-line-640" x1="495.2" y1="20" x2="495.2" y2="140" stroke="#ef4444" stroke-width="2" stroke-dasharray="3 3" opacity="0.8"/>
+              <text x="500" y="32" fill="#ef4444" font-size="10" font-weight="700">640 nm</text>
+
+              <g id="spectrumCurves"></g>
+            </svg>
+          </div>
+
+          <div id="flow-audit-container"></div>
+        </div>
+      </section>
+
+      <!-- PANE 4: FORMULA STUDIO (PRO FEATURE) -->
+      <section id="pane-m3-studio" class="m3-pane" style="display:none;">
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; margin-bottom:1rem;">
+            <div>
+              <h3 style="font-size:1.1rem; color:#fff; display:flex; align-items:center; gap:0.5rem;">
+                🛠️ Formula Studio <span class="pro-badge">PRO</span>
+              </h3>
+              <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0.2rem;">
+                Construct custom algebraic converters for specialized protocols. Saved to browser storage with team JSON sync.
+              </p>
+            </div>
+            <div style="display:flex; gap:0.4rem;">
+              <button class="preset-btn" id="btn-export-studio-json">Export Team Preset Pack (.json)</button>
+              <button class="btn-secondary" id="btn-import-studio-json">Import Preset Pack</button>
+              <input type="file" id="studio-file-input" style="display:none;" accept=".json" />
+            </div>
+          </div>
+
+          <div style="background:#090d16; border:1px solid var(--border); border-radius:8px; padding:1.25rem; margin-bottom:1.5rem;">
+            <div style="font-size:0.95rem; font-weight:700; color:var(--accent); margin-bottom:0.75rem;">
+              + Create New Custom Bench Calculator
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:0.75rem; margin-bottom:0.75rem;">
+              <div>
+                <label style="font-size:0.75rem; color:var(--text-muted);">Calculator Name</label>
+                <input type="text" id="custom-calc-name" placeholder="e.g. Protein Gel Load Normalizer" class="grid-input" />
+              </div>
+              <div>
+                <label style="font-size:0.75rem; color:var(--text-muted);">Input Variable Label</label>
+                <input type="text" id="custom-var-label" placeholder="e.g. Raw OD600" class="grid-input" />
+              </div>
+              <div>
+                <label style="font-size:0.75rem; color:var(--text-muted);">Output Result Label</label>
+                <input type="text" id="custom-out-label" placeholder="e.g. Yield (mg/mL)" class="grid-input" />
+              </div>
+            </div>
+
+            <div style="margin-bottom:1rem;">
+              <label style="font-size:0.75rem; color:var(--text-muted);">Mathematical Expression (Use 'x' as input variable)</label>
+              <div style="display:flex; gap:0.5rem;">
+                <input type="text" id="custom-calc-expr" placeholder="e.g. x * 0.85 + 2.4" class="grid-input" style="font-family:monospace;" />
+                <button class="btn-primary" id="btn-save-custom-calc" style="white-space:nowrap;">Save Calculator</button>
+              </div>
+              <span style="font-size:0.72rem; color:var(--text-muted); margin-top:0.3rem; display:block;">
+                Supported operators: +, -, *, /, ^ (power), parentheses. Example: (x / 2.5) * 10^3
+              </span>
+            </div>
+          </div>
+
+          <div style="font-size:0.95rem; font-weight:700; color:#fff; margin-bottom:0.75rem;">
+            Active User-Generated Calculators
+          </div>
+          <div id="custom-calculators-list" class="converter-grid"></div>
+        </div>
+      </section>
     </main>
   </div>
 
