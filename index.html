@@ -43,33 +43,63 @@
     </nav>
 
     <!-- ======================================================== -->
-    <!-- MODULE 0: HOME / MISSION CONTROL (DASHBOARD)             -->
+    <!-- MODULE 0: MISSION CONTROL (WORKFLOW INITIALIZER)         -->
     <!-- ======================================================== -->
     <main id="home-module" class="module-view" style="display: block;">
-      <!-- HERO: DAILY LAB PRO-TIP & BENCH WISDOM ROTATOR -->
-      <section class="home-hero-card">
-        <div class="tip-banner-header">
-          <div style="display:flex; align-items:center; gap:0.5rem;">
-            <span style="font-size:1.2rem;">💡</span>
-            <span class="tip-badge-tag" id="home-tip-category">[Aseptic Culture]</span>
-            <span style="font-size:0.75rem; color:var(--text-muted);" id="home-tip-id">Tip #1 of 325</span>
+      <div class="home-dynamic-bg"></div>
+      
+      <div class="home-content-layer">
+        <!-- 1. Floating Pro-Tip Banner -->
+        <div class="mission-control-tip">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <span style="font-size:1.5rem;">💡</span>
+            <div>
+              <span class="tip-badge-tag" id="home-tip-category">[Protocol Wisdom]</span>
+              <div class="mc-tip-text" id="home-tip-content">
+                Loading protocol tip...
+              </div>
+            </div>
           </div>
-          <span style="font-size:0.75rem; color:var(--text-muted);">Rotating Daily Protocol Wisdom</span>
+          <div style="display:flex; flex-direction:column; gap:0.4rem; min-width:110px;">
+            <button class="preset-btn" id="btn-next-tip" style="padding:0.25rem 0.5rem; font-size:0.7rem;">🎲 Shuffle</button>
+            <button class="preset-btn" id="btn-copy-tip" style="padding:0.25rem 0.5rem; font-size:0.7rem;">📋 Copy</button>
+          </div>
         </div>
 
-        <div class="tip-quote-text" id="home-tip-content">
-          "Pre-wet your pipette tips 2–3 times with the sample liquid before aspirating, especially with volatile or viscous solutions, to equilibrate vapor pressure and prevent droplet dripping."
-        </div>
+        <!-- 2. Central Workflow Initialization Prompt -->
+        <div class="mission-control-center">
+          <!-- Aesthetic Company Icon -->
+          <div class="company-logo-graphic">🧬</div>
+          
+          <div class="iso-prompt-card">
+            <h2>Initialize Lab Session</h2>
+            <p>Establish environmental controls to generate compliant SOPs.</p>
 
-        <div class="tip-actions-bar">
-          <button class="btn-primary" id="btn-next-tip" style="font-size:0.78rem; padding:0.4rem 0.8rem;">
-            🎲 Another Pro-Tip
-          </button>
-          <button class="preset-btn" id="btn-copy-tip" style="font-size:0.78rem;">
-            📋 Copy Tip to Clipboard
-          </button>
+            <div class="prompt-field">
+              <label>1. Sterility & Environmental Standard</label>
+              <select class="prompt-select" id="session-iso-standard">
+                <option value="iso5">ISO 5 (Class II Biosafety Cabinet / Laminar Flow)</option>
+                <option value="iso7">ISO 7 (Cleanroom Environment)</option>
+                <option value="bsl2">BSL-2 (Pathogen Containment Hood)</option>
+                <option value="bench">Standard Unclassified Benchtop</option>
+              </select>
+            </div>
+
+            <div class="prompt-field">
+              <label>2. Intended Protocol Output</label>
+              <select class="prompt-select" id="session-protocol-scope">
+                <option value="quick">Quick Execution (Calculations & 5-Step SOP)</option>
+                <option value="batch">Comprehensive (Full GxP Batch Record & Telemetry)</option>
+              </select>
+            </div>
+
+            <button class="btn-launch-workflow" id="btn-launch-session">
+              Establish Parameters & Enter Suite ➔
+            </button>
+          </div>
         </div>
-      </section>
+      </div>
+    </main>
 
       <!-- FAVORITES & RECENTS QUICK-ACCESS SECTION -->
       <section class="home-quick-access" id="home-quick-access-section">
